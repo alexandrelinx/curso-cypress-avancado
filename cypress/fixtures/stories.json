@@ -1,0 +1,26 @@
+{
+    "hits":[
+ 
+{  "title":"Build Your Own React",
+   "url":"https://pomb.us/build-your-own-react/",
+   "author":"peterhunt",
+   "num_comments":"287",
+   "points":"1039", 
+   "objectID":"9271246"},
+
+{  "title":"Relicensing React, Jest, Flow, and Immutable.js",
+   "url":"https://code.facebook.com/posts/300798627056246",
+   "author":"dwwoelfel",
+   "num_comments":"498",
+   "points":"2280", 
+   "objectID":"15316175" }, 
+
+{  "title":"Vue.js vs. React",
+   "url":"https://vuejs.org/v2/guide/comparison.html#React",
+   "author":"fanf2",
+   "num_comments":"471",
+   "points":"732", 
+   "objectID":"15052691"}
+
+ ] 
+}
