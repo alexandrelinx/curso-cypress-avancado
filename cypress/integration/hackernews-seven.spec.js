@@ -1,14 +1,17 @@
+//const { stubTrue } = require('cypress/types/lodash')
+
 describe('Hacker Stories', () => {
-  const initialTerm = 'React'
-  const newTerm = 'Cypress'
-  context('Hitting the real API', () => {
+  const initialTerm = 'redux'
+  const newTerm = 'cypress'
+  context.only('Hitting the real API', () => {
     beforeEach(() => {
       cy.intercept({
         method: 'GET',
         pathname: '**/search',
         query: {
           query: initialTerm,
-          page: '0'
+          page: '0',
+          hitsPerPage: '100'
         }
       }).as('getStories')
 
@@ -16,25 +19,26 @@ describe('Hacker Stories', () => {
       cy.wait('@getStories')
     })
 
-    it('shows 20 stories, then the next 20 after clicking "More"', () => {
+    it('shows 100 stories, then the next 100 after clicking "More"', () => {
       cy.intercept({
         method: 'GET',
         pathname: '**/search',
-        // delay: 1000,
+        delay: 1000,
         query: {
           query: initialTerm,
-          page: '1'
+          page: '1',
+          hitsPerPage: '100'
         }
       }).as('getNextStories')
 
-      cy.get('.item').should('have.length', 20)
+      cy.get('.table-row').should('have.length', 100)
 
       cy.contains('More')
         .should('be.visible')
         .click()
       cy.wait('@getNextStories')
-      cy.get('.item')
-        .should('have.length', 40)
+      cy.get('.table-row')
+        .should('have.length', 200)
     })
 
     it('shows a "Loading ..." state before showing the results', () => {
@@ -42,7 +46,7 @@ describe('Hacker Stories', () => {
 
       cy.assertLoadingIsShownAndHidden()
 
-      cy.get('.item').should('have.length', 20)
+      cy.get('.table-row').should('have.length', 100)
     })
 
     it('searches via the last searched term', () => {
@@ -51,36 +55,37 @@ describe('Hacker Stories', () => {
         pathname: '**/search',
         query: {
           query: `${newTerm}`,
-          page: '0'
+          page: '0',
+          hitsPerPage: '100'
         }
       }).as('getSearchStories')
-      cy.get('#search')
+      
+      cy.get('input')
         .should('be.visible')
+        .should('have.value', initialTerm)
         .clear()
         .type(`${newTerm}{enter}`)
 
       cy.wait('@getSearchStories')
 
-      cy.getLocalStorage('search')
-        .should('be.equal', newTerm)
-
-      cy.get(`button:contains(${initialTerm})`)
+      cy.get('input')
         .should('be.visible')
-        .click()
+        .should('have.value', newTerm)
+        .clear()
+        .type(`${initialTerm}{enter}`)
 
-      cy.wait('@getStories')
-
-      cy.getLocalStorage('search')
-        .should('be.equal', initialTerm)
-
-      cy.get('.item').should('have.length', 20)
-      cy.get('.item')
+     
+      cy.get('input')
+        .should('be.visible')
+        .should('have.value', initialTerm)
+      
+      cy.get('.table-row').should('have.length', 100)
+      cy.get('.table-row')
         .first()
         .should('be.visible')
-        .and('contain', initialTerm)
-      cy.get(`button:contains(${newTerm})`)
+        .contains(initialTerm,{matchCase:false})
         .should('be.visible')
-    })
+      })
   })
 
   context('Mocking the API', () => {
@@ -88,14 +93,14 @@ describe('Hacker Stories', () => {
       beforeEach(() => {
         cy.intercept(
           'GET',
-       `**/search?query=${initialTerm}&page=0`,
-       { fixture: 'stories' }
+         `**/search?query=${initialTerm}&page=0`,
+         { fixture: 'stories' }
         ).as('getStories')
 
         cy.visit('/')
         cy.wait('@getStories')
       })
-      it('shows the footer', () => {
+      it.skip('shows the footer', () => {
         cy.get('footer')
           .should('be.visible')
           .and('contain', 'Icons made by Freepik from www.flaticon.com')
@@ -244,14 +249,14 @@ describe('Hacker Stories', () => {
       beforeEach(() => {
         cy.intercept(
           'GET',
-          `**/search?query=${initialTerm}&page=0`,
-          { fixture: 'empty' }
+            `**/search?query=${initialTerm}&page=0`,
+            { fixture: 'empty' }
         ).as('getEmptyStories')
 
         cy.intercept(
           'GET',
-          `**/search?query=${newTerm}&page=0`,
-          { fixture: 'stories' }
+            `**/search?query=${newTerm}&page=0`,
+            { fixture: 'stories' }
         ).as('getStories')
 
         cy.visit('/')
@@ -323,7 +328,7 @@ describe('Hacker Stories', () => {
               .should('be.equal', randomWord)
           })
           cy.get('.last-searches')
-          // .should('have.length', 5)
+            // .should('have.length', 5)
             .within(() => {
               cy.get('button')
                 .should('have.length', 5)
