@@ -1,9 +1,9 @@
-//const { stubTrue } = require('cypress/types/lodash')
+// const { stubTrue } = require('cypress/types/lodash')
 
 describe('Hacker Stories', () => {
   const initialTerm = 'redux'
   const newTerm = 'cypress'
-  context.only('Hitting the real API', () => {
+  context('Hitting the real API', () => {
     beforeEach(() => {
       cy.intercept({
         method: 'GET',
@@ -59,7 +59,7 @@ describe('Hacker Stories', () => {
           hitsPerPage: '100'
         }
       }).as('getSearchStories')
-      
+
       cy.get('input')
         .should('be.visible')
         .should('have.value', initialTerm)
@@ -74,311 +74,329 @@ describe('Hacker Stories', () => {
         .clear()
         .type(`${initialTerm}{enter}`)
 
-     
       cy.get('input')
         .should('be.visible')
         .should('have.value', initialTerm)
-      
+
       cy.get('.table-row').should('have.length', 100)
       cy.get('.table-row')
         .first()
         .should('be.visible')
-        .contains(initialTerm,{matchCase:false})
+        .contains(initialTerm, { matchCase: false })
         .should('be.visible')
-      })
+    })
   })
 
   context('Mocking the API', () => {
-    context('footer and list of stories', () => {
-      beforeEach(() => {
-        cy.intercept(
-          'GET',
-         `**/search?query=${initialTerm}&page=0`,
+    // context('footer and list of stories', () => {
+    beforeEach(() => {
+      cy.intercept(
+        'GET',
+         `**/search?query=${initialTerm}&page=0&hitsPerPage=100`,
          { fixture: 'stories' }
-        ).as('getStories')
+      ).as('getStories')
 
-        cy.visit('/')
-        cy.wait('@getStories')
-      })
-      it.skip('shows the footer', () => {
-        cy.get('footer')
-          .should('be.visible')
-          .and('contain', 'Icons made by Freepik from www.flaticon.com')
-      })
-
-      context('List of stories', () => {
-        const stories = require('../fixtures/stories')
-        it('shows the right data for all rendered stories', () => {
-          cy.get('.item')
-            .first()
-            .should('be.visible')
-            .should('contain', stories.hits[0].title)
-            .and('contain', 'Build Your Own React')
-            .and('contain', stories.hits[0].author)
-            .and('contain', 'peterhunt')
-            .and('contain', stories.hits[0].num_comments)
-            .and('contain', '287')
-            .and('contain', stories.hits[0].points)
-            .and('contain', '1039')
-          cy.get(`.item a:contains(${stories.hits[0].title})`)
-            .should('have.attr', 'href', stories.hits[0].url)
-
-          cy.get('.item')
-            .next()
-            .should('be.visible')
-            .should('contain', stories.hits[1].title)
-            .and('contain', 'Relicensing React, Jest, Flow, and Immutable.js')
-            .and('contain', stories.hits[1].author)
-            .and('contain', 'dwwoelfel')
-            .and('contain', stories.hits[1].num_comments)
-            .and('contain', '498')
-            .and('contain', stories.hits[1].points)
-            .and('contain', '2280')
-          cy.get(`.item a:contains(${stories.hits[1].title})`)
-            .should('have.attr', 'href', stories.hits[1].url)
-
-          cy.get('.item')
-            .next()
-            .should('be.visible')
-            .should('contain', stories.hits[2].title)
-            .and('contain', 'Vue.js vs. React')
-            .and('contain', stories.hits[2].author)
-            .and('contain', 'fanf2')
-            .and('contain', stories.hits[2].num_comments)
-            .and('contain', '471')
-            .and('contain', stories.hits[2].points)
-            .and('contain', '732')
-          cy.get(`.item a:contains(${stories.hits[2].title})`)
-            .should('have.attr', 'href', stories.hits[2].url)
-        })
-        it('shows one less story after demissing the first two', () => {
-          cy.get('.button-small')
-            .first()
-            .should('be.visible')
-            .click()
-          cy.get('.item').should('have.length', 2)
-        })
-
-        context('Order by', () => {
-          it('orders by title', () => {
-            // cy.get('[style="width: 40%;"] > .list-header-button')
-            cy.get('.list-header-button:contains(Title)').as('titleheader')
-              .should('be.visible')
-              .click()
-
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[0].title)
-            cy.get(`.item a:contains(${stories.hits[0].title})`)
-              .should('have.attr', 'href', stories.hits[0].url)
-
-            cy.get('@titleheader')
-              .click()
-
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[2].title)
-            cy.get(`.item a:contains(${stories.hits[2].title})`)
-              .should('have.attr', 'href', stories.hits[2].url)
-          })
-
-          it('orders by author', () => {
-            // cy.get('[style="width: 30%;"] > .list-header-button')
-            cy.get('.list-header-button:contains(Author)').as('authorheader')
-              .should('be.visible')
-              .click()
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[1].author)
-
-            cy.get('@authorheader')
-              .click()
-
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[0].author)
-          })
-
-          it('orders by comments', () => {
-            // cy.get('[style="width: 30%;"] > .list-header-button')
-            cy.get('.list-header-button:contains(Comments)').as('Commentsheader')
-              .should('be.visible')
-              .click()
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[1].num_comments)
-
-            cy.get('@Commentsheader')
-              .click()
-
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[0].num_comments)
-          })
-
-          it('orders by points', () => {
-            // cy.get('[style="width: 30%;"] > .list-header-button')
-
-            cy.get('.list-header-button:contains(Points)').as('Pointsheader')
-              .should('be.visible')
-              .click()
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[2].points)
-
-            cy.get('@Pointsheader')
-              .click()
-
-            cy.get('.item')
-              .first()
-              .should('be.visible')
-              .and('contain', stories.hits[0].points)
-          })
-        })
-      })
+      cy.visit('/')
+      cy.wait('@getStories')
     })
 
-    context('Search', () => {
-      beforeEach(() => {
-        cy.intercept(
-          'GET',
-            `**/search?query=${initialTerm}&page=0`,
-            { fixture: 'empty' }
-        ).as('getEmptyStories')
-
-        cy.intercept(
-          'GET',
-            `**/search?query=${newTerm}&page=0`,
-            { fixture: 'stories' }
-        ).as('getStories')
-
-        cy.visit('/')
-        cy.wait('@getEmptyStories')
-        cy.get('#search')
+    context('List of stories', () => {
+      const stories = require('../fixtures/stories')
+      it('shows the right data for all rendered stories', () => {
+        cy.get('.table-row')
+          .first()
           .should('be.visible')
-          .clear()
-      })
-      it('shows no story when none is returned', () => {
-        cy.get('.item').should('not.exist')
-      })
+          .should('contain', stories.hits[0].title)
+          .and('contain', 'Build Your Own React')
+          .and('contain', stories.hits[0].author)
+          .and('contain', 'peterhunt')
+          .and('contain', stories.hits[0].num_comments)
+          .and('contain', '287')
+          .and('contain', stories.hits[0].points)
+          .and('contain', '1039')
+        cy.get(`.table-row a:contains(${stories.hits[0].title})`)
+          .should('have.attr', 'href', stories.hits[0].url)
 
-      it('types and hits ENTER', () => {
-        cy.get('#search').should('be.visible')
-          .type(`${newTerm}{enter}`)
-
-        cy.wait('@getStories')
-
-        cy.getLocalStorage('search')
-          .should('be.equal', newTerm)
-
-        cy.get('.item').should('have.length', 3)
-        // cy.get('.item')
-        //  .first()
-        //  .should('contain', newTerm)
-        cy.get(`button:contains(${initialTerm})`)
+        cy.get('.table-row')
+          .next()
           .should('be.visible')
-      })
+          .should('contain', stories.hits[1].title)
+          .and('contain', 'Relicensing React, Jest, Flow, and Immutable.js')
+          .and('contain', stories.hits[1].author)
+          .and('contain', 'dwwoelfel')
+          .and('contain', stories.hits[1].num_comments)
+          .and('contain', '498')
+          .and('contain', stories.hits[1].points)
+          .and('contain', '2280')
+        cy.get(`.table-row a:contains(${stories.hits[1].title})`)
+          .should('have.attr', 'href', stories.hits[1].url)
 
-      it('types and clicks the submit button', () => {
-        cy.get('#search')
-          .type(newTerm)
-        cy.contains('Submit')
+        cy.get('.table-row')
+          .next()
+          .should('be.visible')
+          .should('contain', stories.hits[2].title)
+          .and('contain', 'Vue.js vs. React')
+          .and('contain', stories.hits[2].author)
+          .and('contain', 'fanf2')
+          .and('contain', stories.hits[2].num_comments)
+          .and('contain', '471')
+          .and('contain', stories.hits[2].points)
+          .and('contain', '732')
+        cy.get(`.table-row a:contains(${stories.hits[2].title})`)
+          .should('have.attr', 'href', stories.hits[2].url)
+      })
+      it('shows one less story after demissing the first two', () => {
+        // cy.get(':nth-child(2) > :nth-child(5) > .button-inline')
+        cy.get('.button-inline:contains(Dismiss)')
+          .first()
           .should('be.visible')
           .click()
-
-        cy.wait('@getStories')
-
-        cy.getLocalStorage('search')
-          .should('be.equal', newTerm)
-
-        cy.get('.item').should('have.length', 3)
-        // cy.get('.item')
-        // .first()
-        // .should('contain', newTerm)
-        cy.get(`button:contains(${initialTerm})`)
-          .should('be.visible')
+        cy.get('.table-row').should('have.length', 2)
       })
 
-      context('Last searches', () => {
-        // Cypress._.times(3, () => {
-        it('shows a max of 5 buttons for the last searched terms', () => {
-          const faker = require('faker')
-          // const termsToSearchFor = faker
+      context('Order by', () => {
+        it('orders by title', () => {
+          // cy.get('[style="width: 40%;"] > .list-header-button')
+          // cy.get('[style="width: 40%;"] > .button-inline')
+          cy.get('.button-inline:contains(Title)').as('titleheader')
+            .should('be.visible')
+            .click()
 
-          cy.intercept(
-            'GET',
-            '**/search**', { fixture: 'stories' }
-          ).as('getRandomStories')
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[0].title)
+          cy.get(`.table-row a:contains(${stories.hits[0].title})`)
+            .should('have.attr', 'href', stories.hits[0].url)
 
-          Cypress._.times(6, () => {
-            const randomWord = faker.random.word()
-            cy.get('#search')
-              .should('be.visible')
-              .clear()
-              .type(`${randomWord}{enter}`)
-            cy.wait('@getRandomStories')
-            cy.getLocalStorage('search')
-              .should('be.equal', randomWord)
-          })
-          cy.get('.last-searches')
-            // .should('have.length', 5)
-            .within(() => {
-              cy.get('button')
-                .should('have.length', 5)
-            })
+          cy.get('@titleheader')
+            .click()
+
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[2].title)
+          cy.get(`.table-row a:contains(${stories.hits[2].title})`)
+            .should('have.attr', 'href', stories.hits[2].url)
+        })
+
+        it('orders by author', () => {
+          // cy.get('[style="width: 30%;"] > .list-header-button')
+          cy.get('.button-inline:contains(Author)').as('authorheader')
+            .should('be.visible')
+            .click()
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[1].author)
+
+          cy.get('@authorheader')
+            .click()
+
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[0].author)
+        })
+
+        it('orders by comments', () => {
+          // cy.get('[style="width: 30%;"] > .list-header-button')
+          cy.get('.button-inline:contains(Comments)').as('Commentsheader')
+            .should('be.visible')
+            .click()
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[1].num_comments)
+
+          cy.get('@Commentsheader')
+            .click()
+
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[0].num_comments)
+        })
+
+        it('orders by points', () => {
+          // cy.get('[style="width: 30%;"] > .list-header-button')
+
+          cy.get('.button-inline:contains(Points)').as('Pointsheader')
+            .should('be.visible')
+            .click()
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[2].points)
+
+          cy.get('@Pointsheader')
+            .click()
+
+          cy.get('.table-row')
+            .first()
+            .should('be.visible')
+            .and('contain', stories.hits[0].points)
         })
       })
     })
-    context('Loading Visible', () => {
-      it('shows a "Loading ..." state before showing the results', () => {
+  })
+
+  context('Search', () => {
+    beforeEach(() => {
+      cy.intercept(
+        'GET',
+            `**/search?query=${initialTerm}&page=0&hitsPerPage=100`,
+            { fixture: 'empty' }
+      ).as('getEmptyStories')
+
+      cy.intercept(
+        'GET',
+            `**/search?query=${newTerm}&page=0&hitsPerPage=100`,
+            { fixture: 'stories' }
+      ).as('getStories')
+
+      cy.visit('/')
+      cy.wait('@getEmptyStories')
+      cy.get('input')
+        .should('be.visible')
+        .clear()
+    })
+    it('shows no story when none is returned', () => {
+      cy.get('.table-row').should('not.exist')
+    })
+
+    it('types and hits ENTER', () => {
+      cy.get('input').should('be.visible')
+        .type(`${newTerm}{enter}`)
+
+      cy.wait('@getStories')
+
+      // cy.getLocalStorage('input')
+      //  .should('be.equal', newTerm)
+
+      cy.get('.table-row').should('have.length', 3)
+      cy.get('.table-row')
+        .first()
+        .should('be.visible')
+    })
+
+    it('types and clicks the submit button', () => {
+      cy.get('input')
+        .type(newTerm)
+      cy.contains('Search')
+        .should('be.visible')
+        .click()
+
+      cy.wait('@getStories')
+
+      //   cy.getLocalStorage('input')
+      //   .should('be.equal', newTerm)
+
+      cy.get('.table-row').should('have.length', 3)
+      cy.get('.table-row')
+        .first()
+        .contains(newTerm, { matchCase: false })
+        .should('be.visible')
+    })
+
+    context('Last searches', () => {
+      // Cypress._.times(3, () => {
+      it.skip('correctly caches the results', () => {
+        const faker = require('faker')
+        const randomWord = faker.random.word()
+        let count = 0
+
+        cy.intercept(`**/search?query=${randomWord}**`, req => {
+          count += 1
+          req.reply({ fixture: 'empty' })
+        }).as('random')
+
+        cy.search(randomWord).then(() => {
+          expect(count, `network calls to fetch ${randomWord}`).to.equal(1)
+
+          cy.wait('@random')
+
+          cy.search(term)
+          cy.wait('@stories')
+
+          cy.search(randomWord).then(() => {
+            expect(count, `network calls to fetch ${randomWord}`).to.equal(1)
+          })
+        })
+      })
+
+          it.only('shows a max of 5 buttons for the last searched terms', () => {
+            const faker = require('faker')
+            // const termsToSearchFor = faker
+
+            cy.intercept(
+              'GET',
+              '**/search**', { fixture: 'stories' }
+            ).as('getRandomStories')
+
+            Cypress._.times(6, () => {
+              const randomWord = faker.random.word()
+              cy.get('input')
+                .should('be.visible')
+                .clear()
+                .type(`${randomWord}{enter}`)
+              cy.wait('@getRandomStories')
+              cy.getLocalStorage('input')
+                .should('be.equal', randomWord)
+            })
+            cy.get('.table-header')
+            // .should('have.length', 5)
+              .within(() => {
+                cy.get('button')
+                  .should('have.length', 5)
+              })
+          })
+        })
+      })
+      context('Loading Visible', () => {
+        it('shows a "Loading ..." state before showing the results', () => {
+          cy.intercept(
+            'GET',
+            '**/search**',
+            { delay: 1000, fixture: 'stories' }
+          ).as('getDelayedMockStories')
+
+          cy.visit('/')
+
+          cy.assertLoadingIsShownAndHidden()
+          cy.wait('@getDelayedMockStories')
+
+          cy.get('.table-row').should('have.length', 3)
+        })
+      })
+    })
+    // })
+
+    context('Errors', () => {
+      it('shows "Something went wrong ..." in case of a server error', () => {
         cy.intercept(
           'GET',
           '**/search**',
-          { delay: 1000, fixture: 'stories' }
-        ).as('getDelayedMockStories')
+          { statusCode: 500 }
+        ).as('getServerFailure')
 
         cy.visit('/')
+        cy.wait('@getServerFailure')
+        cy.get('p:contains(Something went wrong.)')
+          .should('be.visible')
+      })
 
-        cy.assertLoadingIsShownAndHidden()
-        cy.wait('@getDelayedMockStories')
+      it('shows "Something went wrong ..." in case of a network error', () => {
+        cy.intercept(
+          'GET',
+          '**/search**',
+          { forceNetworkError: true }
+        ).as('getNetworkFailure')
 
-        cy.get('.item').should('have.length', 3)
+        cy.visit('/')
+        cy.wait('@getNetworkFailure')
+        cy.get('p:contains(Something went wrong.)')
+          .should('be.visible')
       })
     })
-  })
-})
 
-context('Errors', () => {
-  it('shows "Something went wrong ..." in case of a server error', () => {
-    cy.intercept(
-      'GET',
-      '**/search**',
-      { statusCode: 500 }
-    ).as('getServerFailure')
-
-    cy.visit('/')
-    cy.wait('@getServerFailure')
-    cy.get('p:contains(Something went wrong ...)')
-      .should('be.visible')
-  })
-
-  it('shows "Something went wrong ..." in case of a network error', () => {
-    cy.intercept(
-      'GET',
-      '**/search**',
-      { forceNetworkError: true }
-    ).as('getNetworkFailure')
-
-    cy.visit('/')
-    cy.wait('@getNetworkFailure')
-    cy.get('p:contains(Something went wrong ...)')
-      .should('be.visible')
-  })
-})
