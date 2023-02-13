@@ -1,6 +1,5 @@
 {
-  
-   "baseUrl":"https://hackernews-seven.vercel.app/"
+     
+   "baseUrl":"https://hackernews-seven.vercel.app/",
+   "experimentalSessionSupport": true
 }
-
-

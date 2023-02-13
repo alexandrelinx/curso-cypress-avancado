@@ -1,35 +1,19 @@
-// const { stubTrue } = require('cypress/types/lodash')
 
 describe('Hacker Stories', () => {
   const initialTerm = 'redux'
   const newTerm = 'cypress'
   context('Hitting the real API', () => {
     beforeEach(() => {
-      cy.intercept({
-        method: 'GET',
-        pathname: '**/search',
-        query: {
-          query: initialTerm,
-          page: '0',
-          hitsPerPage: '100'
-        }
-      }).as('getStories')
+      cy.interceptInitialTerm()
+        .as('getStories')
 
       cy.visit('/')
       cy.wait('@getStories')
     })
 
     it('shows 100 stories, then the next 100 after clicking "More"', () => {
-      cy.intercept({
-        method: 'GET',
-        pathname: '**/search',
-        delay: 1000,
-        query: {
-          query: initialTerm,
-          page: '1',
-          hitsPerPage: '100'
-        }
-      }).as('getNextStories')
+      cy.interceptInitialTermPage1()
+        .as('getNextStories')
 
       cy.get('.table-row').should('have.length', 100)
 
@@ -50,15 +34,8 @@ describe('Hacker Stories', () => {
     })
 
     it('searches via the last searched term', () => {
-      cy.intercept({
-        method: 'GET',
-        pathname: '**/search',
-        query: {
-          query: `${newTerm}`,
-          page: '0',
-          hitsPerPage: '100'
-        }
-      }).as('getSearchStories')
+      cy.interceptNewTerm()
+        .as('getSearchStories')
 
       cy.get('input')
         .should('be.visible')
@@ -88,13 +65,9 @@ describe('Hacker Stories', () => {
   })
 
   context('Mocking the API', () => {
-    // context('footer and list of stories', () => {
     beforeEach(() => {
-      cy.intercept(
-        'GET',
-         `**/search?query=${initialTerm}&page=0&hitsPerPage=100`,
-         { fixture: 'stories' }
-      ).as('getStories')
+      cy.interceptInitialTermFixtureStories()
+        .as('getStories')
 
       cy.visit('/')
       cy.wait('@getStories')
@@ -156,9 +129,8 @@ describe('Hacker Stories', () => {
 
       context('Order by', () => {
         it('orders by title', () => {
-          // cy.get('[style="width: 40%;"] > .list-header-button')
           // cy.get('[style="width: 40%;"] > .button-inline')
-          cy.get('.button-inline:contains(Title)').as('titleheader')
+          cy.get('.button-inline:contains(Title)').as('titleHeader')
             .should('be.visible')
             .click()
 
@@ -169,7 +141,7 @@ describe('Hacker Stories', () => {
           cy.get(`.table-row a:contains(${stories.hits[0].title})`)
             .should('have.attr', 'href', stories.hits[0].url)
 
-          cy.get('@titleheader')
+          cy.get('@titleHeader')
             .click()
 
           cy.get('.table-row')
@@ -182,15 +154,17 @@ describe('Hacker Stories', () => {
 
         it('orders by author', () => {
           // cy.get('[style="width: 30%;"] > .list-header-button')
-          cy.get('.button-inline:contains(Author)').as('authorheader')
+          cy.get('.button-inline:contains(Author)')
+            .as('authorHeader')
             .should('be.visible')
             .click()
+
           cy.get('.table-row')
             .first()
             .should('be.visible')
             .and('contain', stories.hits[1].author)
 
-          cy.get('@authorheader')
+          cy.get('@authorHeader')
             .click()
 
           cy.get('.table-row')
@@ -201,15 +175,17 @@ describe('Hacker Stories', () => {
 
         it('orders by comments', () => {
           // cy.get('[style="width: 30%;"] > .list-header-button')
-          cy.get('.button-inline:contains(Comments)').as('Commentsheader')
+          cy.get('.button-inline:contains(Comments)')
+            .as('CommentsHeader')
             .should('be.visible')
             .click()
+
           cy.get('.table-row')
             .first()
             .should('be.visible')
             .and('contain', stories.hits[1].num_comments)
 
-          cy.get('@Commentsheader')
+          cy.get('@CommentsHeader')
             .click()
 
           cy.get('.table-row')
@@ -221,15 +197,16 @@ describe('Hacker Stories', () => {
         it('orders by points', () => {
           // cy.get('[style="width: 30%;"] > .list-header-button')
 
-          cy.get('.button-inline:contains(Points)').as('Pointsheader')
+          cy.get('.button-inline:contains(Points)').as('PointsHeader')
             .should('be.visible')
             .click()
+
           cy.get('.table-row')
             .first()
             .should('be.visible')
             .and('contain', stories.hits[2].points)
 
-          cy.get('@Pointsheader')
+          cy.get('@PointsHeader')
             .click()
 
           cy.get('.table-row')
@@ -243,17 +220,11 @@ describe('Hacker Stories', () => {
 
   context('Search', () => {
     beforeEach(() => {
-      cy.intercept(
-        'GET',
-            `**/search?query=${initialTerm}&page=0&hitsPerPage=100`,
-            { fixture: 'empty' }
-      ).as('getEmptyStories')
+      cy.interceptInitialTermFixtureEmpty()
+        .as('getEmptyStories')
 
-      cy.intercept(
-        'GET',
-            `**/search?query=${newTerm}&page=0&hitsPerPage=100`,
-            { fixture: 'stories' }
-      ).as('getStories')
+      cy.interceptNewTermFixtureStories()
+        .as('getStories')
 
       cy.visit('/')
       cy.wait('@getEmptyStories')
@@ -271,9 +242,6 @@ describe('Hacker Stories', () => {
 
       cy.wait('@getStories')
 
-      // cy.getLocalStorage('input')
-      //  .should('be.equal', newTerm)
-
       cy.get('.table-row').should('have.length', 3)
       cy.get('.table-row')
         .first()
@@ -289,9 +257,6 @@ describe('Hacker Stories', () => {
 
       cy.wait('@getStories')
 
-      //   cy.getLocalStorage('input')
-      //   .should('be.equal', newTerm)
-
       cy.get('.table-row').should('have.length', 3)
       cy.get('.table-row')
         .first()
@@ -301,102 +266,78 @@ describe('Hacker Stories', () => {
 
     context('Last searches', () => {
       // Cypress._.times(3, () => {
-      it.skip('correctly caches the results', () => {
+      it('insert 6 entries at random', () => {
         const faker = require('faker')
-        const randomWord = faker.random.word()
-        let count = 0
+        // const termsToSearchFor = faker
 
-        cy.intercept(`**/search?query=${randomWord}**`, req => {
-          count += 1
-          req.reply({ fixture: 'empty' })
-        }).as('random')
-
-        cy.search(randomWord).then(() => {
-          expect(count, `network calls to fetch ${randomWord}`).to.equal(1)
-
-          cy.wait('@random')
-
-          cy.search(term)
-          cy.wait('@stories')
-
-          cy.search(randomWord).then(() => {
-            expect(count, `network calls to fetch ${randomWord}`).to.equal(1)
-          })
-        })
-      })
-
-          it.only('shows a max of 5 buttons for the last searched terms', () => {
-            const faker = require('faker')
-            // const termsToSearchFor = faker
-
-            cy.intercept(
-              'GET',
-              '**/search**', { fixture: 'stories' }
-            ).as('getRandomStories')
-
-            Cypress._.times(6, () => {
-              const randomWord = faker.random.word()
-              cy.get('input')
-                .should('be.visible')
-                .clear()
-                .type(`${randomWord}{enter}`)
-              cy.wait('@getRandomStories')
-              cy.getLocalStorage('input')
-                .should('be.equal', randomWord)
-            })
-            cy.get('.table-header')
-            // .should('have.length', 5)
-              .within(() => {
-                cy.get('button')
-                  .should('have.length', 5)
-              })
-          })
-        })
-      })
-      context('Loading Visible', () => {
-        it('shows a "Loading ..." state before showing the results', () => {
-          cy.intercept(
-            'GET',
-            '**/search**',
-            { delay: 1000, fixture: 'stories' }
-          ).as('getDelayedMockStories')
-
-          cy.visit('/')
-
-          cy.assertLoadingIsShownAndHidden()
-          cy.wait('@getDelayedMockStories')
-
-          cy.get('.table-row').should('have.length', 3)
-        })
-      })
-    })
-    // })
-
-    context('Errors', () => {
-      it('shows "Something went wrong ..." in case of a server error', () => {
         cy.intercept(
           'GET',
-          '**/search**',
-          { statusCode: 500 }
-        ).as('getServerFailure')
+          '**/search**', { fixture: 'stories' }
+        ).as('getRandomStories')
 
-        cy.visit('/')
-        cy.wait('@getServerFailure')
-        cy.get('p:contains(Something went wrong.)')
-          .should('be.visible')
-      })
+        Cypress._.times(6, () => {
+          const randomWord = faker.random.word()
+          cy.get('input')
+            .should('be.visible')
+            .clear()
+            .type(`${randomWord}{enter}`)
 
-      it('shows "Something went wrong ..." in case of a network error', () => {
-        cy.intercept(
-          'GET',
-          '**/search**',
-          { forceNetworkError: true }
-        ).as('getNetworkFailure')
+          cy.wait('@getRandomStories')
 
-        cy.visit('/')
-        cy.wait('@getNetworkFailure')
-        cy.get('p:contains(Something went wrong.)')
-          .should('be.visible')
+          cy.get('input')
+            .should('be.visible')
+        })
+
+        cy.get('.table-header')
+          .within(() => {
+            cy.get('button')
+              .should('have.length', 4)
+          })
       })
     })
+  })
+  context('Loading Visible', () => {
+    it('shows a "Loading ..." state before showing the results', () => {
+      cy.intercept(
+        'GET',
+        '**/search**',
+        { delay: 1000, fixture: 'stories' }
+      ).as('getDelayedMockStories')
 
+      cy.visit('/')
+
+      cy.assertLoadingIsShownAndHidden()
+      cy.wait('@getDelayedMockStories')
+
+      cy.get('.table-row').should('have.length', 3)
+    })
+  })
+})
+
+context('Errors', () => {
+  it('shows "Something went wrong ..." in case of a server error', () => {
+    cy.intercept(
+      'GET',
+      '**/search**',
+      { statusCode: 500 }
+    ).as('getServerFailure')
+
+    cy.visit('/')
+    cy.wait('@getServerFailure')
+    cy.get('p:contains(Something went wrong.)')
+      .should('be.visible')
+  })
+
+  it('shows "Something went wrong ..." in case of a network error', () => {
+    cy.intercept(
+      'GET',
+      '**/search**',
+      { forceNetworkError: true }
+    ).as('getNetworkFailure')
+
+    cy.visit('/')
+    cy.wait('@getNetworkFailure')
+    cy.get('p:contains(Something went wrong.)')
+      .should('be.visible')
+  })
+})
